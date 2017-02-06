@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0, shrink-to-fit=no">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <title>SolarSystem</title>
+    <style type="text/css">
+        body {
+            width: 100%;
+            height: 100%;
+            background-color: #000;
+            color: #fff;
+            margin: 0px;
+            padding: 0;
+            overflow: hidden;
+        }
+
+    </style>
+</head>
+<body>
+</body>
+    <script>
+        /*
+         * Debug parameters.
+         */
+        WebVRConfig = {
+            /**
+             * webvr-polyfill configuration
+             */
+            //在VR显示模式下对WebVR推荐的屏幕比例进行缩放。在IOS下如果不为0.5会出现显示问题，查看
+            //https://github.com/borismus/webvr-polyfill/pull/106
+            BUFFER_SCALE: 0.5, // default: 1.0
+
+
+        };
+    </script>
+    <!--作者引入的一个promise polyfill-->
+    <script src="lib/es6-promise/dist/es6-promise.js"></script>
+    <!--three.js核心库-->
+    <script src="lib/three/three.js"></script>
+    <!--从连接的VR设备中获得位置信息并应用在camera对象上，将在下文展开-->
+    <script src="lib/three/examples/js/controls/VRControls.js"></script>
+    <!--处理立体视觉和绘制相关，将在下文展开-->
+    <script src="lib/three/examples/js/effects/VREffect.js"></script>
+    <!--WebVR polyfill，下文简述调用的API option-->
+    <script src="lib/webvr-polyfill/build/webvr-polyfill.js"></script>
+    <!--界面按钮以及进入/退出VR模式的控制等-->
+    <script src="lib/build/webvr-manager.js"></script>
+    <script>
+        var Sun,
+            Mercury,  //水星
+            Venus,  //金星
+            Earth,
+            Mars,
+            Jupiter, //木星
+            Saturn, //土星
+            Uranus, //天王
+            Neptune, //海王
+            stars = [];
+        // Setup three.js WebGL renderer. Note: Antialiasing is a big performance hit.
+        // Only enable it if you actually need to.
+        var renderer = new THREE.WebGLRenderer({antialias: true});
+        renderer.setPixelRatio(window.devicePixelRatio);
+
+        // Append the canvas element created by the renderer to document body element.
+        document.body.appendChild(renderer.domElement);
+
+        // Create a three.js scene.
+        var scene = new THREE.Scene();
+
+        // Create a three.js camera.
+        var camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 10000);
+
+        //光源初始化
+        initLight();
+        function initLight() {
+            //环境光
+            var ambient = new THREE.AmbientLight(0x999999);
+            scene.add(ambient);
+
+            /*太阳光*/
+            var sunLight = new THREE.PointLight(0xddddaa, 1.5, 500);
+            scene.add(sunLight);
+        }
+        // Apply VR headset positional data to camera.
+        var controls = new THREE.VRControls(camera);
+        //站立姿态
+        controls.standing = true;
+
+        // Apply VR stereo rendering to renderer.
+        var effect = new THREE.VREffect(renderer);
+        effect.setSize(window.innerWidth, window.innerHeight);
+
+        // Create a VR manager helper to enter and exit VR mode.
+        //按钮和全屏模式管理
+        var params = {
+            hideButton: false, // Default: false.
+            isUndistorted: false // Default: false.
+        };
+        var manager = new WebVRManager(renderer, effect, params);
+
+  /*      // Create 3D objects.
+        var geometry = new THREE.BoxGeometry(0.5, 0.5, 0.5);
+        var material = new THREE.MeshNormalMaterial();
+        var cube = new THREE.Mesh(geometry, material);
+
+        // Position cube mesh to be right in front of you.
+        cube.position.set(0, controls.userHeight, -1);
+
+        // Add cube mesh to your three.js scene
+        scene.add(cube);*/
+        initObject();
+        // Kick off animation loop
+        requestAnimationFrame(animate);
+
+        window.addEventListener('resize', onResize, true);
+        window.addEventListener('vrdisplaypresentchange', onResize, true);
+
+        // Request animation frame loop function
+        var lastRender = 0;
+        function animate(timestamp) {
+            var delta = Math.min(timestamp - lastRender, 500);
+            lastRender = timestamp;
+
+            //立方体的旋转
+
+            move();
+
+            // Update VR headset position and apply to camera.
+            //更新获取HMD的信息
+            controls.update();
+
+            // Render the scene through the manager.
+            //进行camera更新和场景绘制
+            manager.render(scene, camera, timestamp);
+
+            requestAnimationFrame(animate);
+        }
+
+        function onResize(e) {
+            effect.setSize(window.innerWidth, window.innerHeight);
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+        }
+
+        //几何体初始化
+
+        function initObject() {
+            //构造太阳
+            var texture = THREE.ImageUtils.loadTexture("images/sunCore.jpg");
+            var mat = new THREE.MeshLambertMaterial();
+            mat.map = texture;
+            Sun = new THREE.Mesh( new THREE.SphereGeometry( 12 ,16 ,16 ),mat);
+            Sun.name='Sun';
+            scene.add(Sun);
+
+            Mercury = this.initPlanet('Mercury',20,2,'mercury.jpg', 0.02, 0);
+            stars.push(Mercury);
+
+            Venus = this.initPlanet('Venus',30,4,'venus.jpg', 0.012, 0);
+            stars.push(Venus);
+
+            Earth = this.initPlanet('Earth',40,5,'earth.jpg' ,0.010, 0);
+            stars.push(Earth);
+
+            Mars = this.initPlanet('Mars',50,4,'mars.jpg', 0.008, 0);
+            stars.push(Mars);
+
+            Jupiter = this.initPlanet('Jupiter',70,9,'Jupiter.jpg', 0.006, 0);
+            stars.push(Jupiter);
+
+            Saturn = this.initPlanet('Saturn',100,7,'Saturn.jpg', 0.005, 0);
+            stars.push(Saturn);
+
+            Uranus = this.initPlanet('Uranus',120,4,'Uranus.jpg', 0.003, 0);
+            stars.push(Uranus);
+
+            Neptune = this.initPlanet('Neptune',150,3,'Neptune.jpg', 0.002, 0);
+            stars.push(Neptune);
+        }
+
+        /**
+         * 初始化行星
+         * @param name  行星名字
+         * @param color  颜色
+         * @param distance  距离原点（太阳中心）的距离
+         * @param volume  体积
+         * @returns {{name: *, distance: *, volume: *, Mesh: THREE.Mesh}}
+         */
+        function initPlanet(name,distance,volume,imageFile,speed,angle) {
+            var texture = THREE.ImageUtils.loadTexture("images/" + imageFile);
+            var mat = new THREE.MeshLambertMaterial();
+            mat.map = texture;
+            var mesh1 = new THREE.SphereGeometry(volume, 16, 16)
+            var mesh = new THREE.Mesh(mesh1,mat);
+            mesh.position.z = -distance;
+            mesh.receiveShadow = true;
+            mesh.castShadow = true;
+
+            mesh.name = name;
+
+            /*轨道*/
+            var track = new THREE.Mesh(new THREE.RingGeometry(distance - 0.2, distance + 0.2, 64, 1), new THREE.MeshBasicMaterial({ color: 0x888888, side: THREE.DoubleSide }));
+            track.rotation.x = -Math.PI / 2;
+            scene.add(track);
+
+            var star = {
+                name: name,
+                speed: speed,
+                angle: angle,
+                distance: distance,
+                volume: volume,
+                Mesh: mesh,
+                Mesh1: mesh1
+            }
+            mesh.position.set(0, controls.userHeight, -1);
+            scene.add(mesh);
+
+            return star;
+        }
+        //行星转动
+        function moveEachStar(star) {
+            star.angle += star.speed;
+            if (star.angle > Math.PI * star.distance) {
+                star.angle -= Math.PI * star.distance;
+            }
+            star.Mesh.position.set(star.distance * Math.sin(star.angle), 0, star.distance * Math.cos(star.angle));
+
+            //star.Mesh1.rotation.y = star.Mesh1.rotation.y == 2 * Math.PI ? 0.0008 * Math.PI : star.Mesh1.rotation.y + 0.0008 * Math.PI;
+        }
+
+        //行星移动
+
+        function move() {
+            /*行星公转*/
+            for (var i = 0; i < stars.length; i++) {
+                moveEachStar(stars[i]);
+            }
+            /*太阳自转*/
+            Sun.rotation.y = Sun.rotation.y == 2 * Math.PI ? 0.0008 * Math.PI : Sun.rotation.y + 0.0008 * Math.PI;
+        }
+    </script>
+</html>
