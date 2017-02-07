@@ -102,16 +102,38 @@
         };
         var manager = new WebVRManager(renderer, effect, params);
 
-  /*      // Create 3D objects.
-        var geometry = new THREE.BoxGeometry(0.5, 0.5, 0.5);
-        var material = new THREE.MeshNormalMaterial();
-        var cube = new THREE.Mesh(geometry, material);
+        //创建星空背景
+/*        var geometry = new THREE.SphereGeometry(50, 100, 100);
+        var material = new THREE.MeshBasicMaterial();
+        material.map = THREE.ImageUtils.loadTexture('images/star.png');
+        material.side = THREE.BackSide;
+        var mesh = new THREE.Mesh(geometry, material);
+        var skybox = new THREE.Mesh(geometry, material);
+        scene.add(skybox);*/
+        var geom = new THREE.CircleGeometry();
+        var material = new THREE.ParticleBasicMaterial({
+            size: 0.1,
+            transparent: true,
+            opacity: 0.6,
+            vertexColors: 0xffffff,
+            sizeAttenuation: false,
+            color: false});
 
-        // Position cube mesh to be right in front of you.
-        cube.position.set(0, controls.userHeight, -1);
 
-        // Add cube mesh to your three.js scene
-        scene.add(cube);*/
+        var range = 500;
+        for (var i = 0; i < 150; i++) {
+            var particle = new THREE.Vector3(Math.random() * range - range / 2, Math.random() * range - range / 2, Math.random() * range - range / 2);
+            geom.vertices.push(particle);
+            var color = new THREE.Color(0xFFFFFF);
+            //color.setHSL(color.getHSL().h, color.getHSL().s, Math.random() * color.getHSL().l);
+            //HSL是一种色彩模式
+            geom.colors.push(color);
+
+        }
+
+        system = new THREE.ParticleSystem(geom, material);
+        scene.add(system);
+
         initObject();
         // Kick off animation loop
         requestAnimationFrame(animate);
