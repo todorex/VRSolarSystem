@@ -103,14 +103,16 @@
         var manager = new WebVRManager(renderer, effect, params);
 
         //创建星空背景
-/*        var geometry = new THREE.SphereGeometry(50, 100, 100);
+        var geometry = new THREE.SphereGeometry(50, 100, 100);
         var material = new THREE.MeshBasicMaterial();
-        material.map = THREE.ImageUtils.loadTexture('images/star.png');
+        material.map = THREE.ImageUtils.loadTexture('images/star3.png');
         material.side = THREE.BackSide;
         var mesh = new THREE.Mesh(geometry, material);
         var skybox = new THREE.Mesh(geometry, material);
-        scene.add(skybox);*/
-        var geom = new THREE.CircleGeometry();
+        scene.add(skybox);
+
+        //粒子系统实现背景不行
+/*        var geom = new THREE.CircleGeometry();
         var material = new THREE.ParticleBasicMaterial({
             size: 0.1,
             transparent: true,
@@ -132,7 +134,7 @@
         }
 
         system = new THREE.ParticleSystem(geom, material);
-        scene.add(system);
+        scene.add(system);*/
 
         initObject();
         // Kick off animation loop
