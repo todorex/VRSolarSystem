@@ -102,7 +102,7 @@
         };
         var manager = new WebVRManager(renderer, effect, params);
 
-        //创建星空背景
+        //创建球形贴图星空背景
         var geometry = new THREE.SphereGeometry(300, 100, 100);
         var material = new THREE.MeshBasicMaterial();
         material.map = THREE.ImageUtils.loadTexture('images/star3.png');
@@ -110,6 +110,15 @@
         var mesh = new THREE.Mesh(geometry, material);
         var skybox = new THREE.Mesh(geometry, material);
         scene.add(skybox);
+
+        //正方形星空贴图实现
+/*        var geometry = new THREE.CubeGeometry(300, 100, 100);
+        var material = new THREE.MeshBasicMaterial();
+        material.map = THREE.ImageUtils.loadTexture('images/star3.png');
+        material.side = THREE.BackSide;
+        var mesh = new THREE.Mesh(geometry, material);
+        var skybox = new THREE.Mesh(geometry, material);
+        scene.add(skybox);*/
 
         //粒子系统实现背景不行
 /*        var geom = new THREE.CircleGeometry();
@@ -245,7 +254,7 @@
 
             return star;
         }
-        //行星转动
+        //所有行星转动
         function moveEachStar(star) {
             star.angle += star.speed;
             if (star.angle > Math.PI * star.distance) {
